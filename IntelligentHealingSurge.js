@@ -299,6 +299,10 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 	 */
 	// ReSharper disable once InconsistentNaming
 	class Character {
+		/**
+		 * Construct a new instance of the Character class
+		 * @param {any} journalObj a journal JSON object containing a field for a name and an id.
+		 */
 		constructor(journalObj) {
 			this.characterName = journalObj.name;
 
@@ -327,12 +331,16 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 				}
 			}
 
-			this.conMod = this.processAttributeFormula(parseInt(this.getAttr(friendlyAttributeNames.conMod)));
+			this.conMod = this.calculateModifier(parseInt(this.getAttr(friendlyAttributeNames.conMod)));
 
 			this.level = parseInt(this.getAttr(friendlyAttributeNames.level));
 		}
 
-		processAttributeFormula(attribute) {
+		/**
+		 * Calculates the modifier of an attribute score.
+		 * @param {any} attribute The attribute that needs to be calculated into a modifier
+		 */
+		calculateModifier(attribute) {
 			return Math.floor((attribute - 10) / 2);
 		}
 
@@ -606,15 +614,28 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 	 * Builds macros for ease of use
 	 */
 	const buildMacros = (function() {
-		const create = function(name, command, playerid) {
-			createObj("macro",
-			{
+		const create = function (name, command, playerid) {
+			// find all macros that share the same name
+			const objs = findObjs({
+				_type: "macro",
 				name: name,
-				action: `!${fields.apiInvoke} -${command}`,
-				visibleto: "all",
-				istokenaction: true,
-				playerid: playerid
+				_playerid: playerid
 			});
+
+			// get the first one if it any were returned
+			const obj = objs.length > 0 ? objs[0] : null;
+
+			// since this macro wasn't found, create it
+			if (!obj) {
+				createObj("macro",
+					{
+						name: name,
+						action: `!${fields.apiInvoke} -${command}`,
+						visibleto: "all",
+						istokenaction: true,
+						playerid: playerid
+					});
+			}
 		};
 
 		/**

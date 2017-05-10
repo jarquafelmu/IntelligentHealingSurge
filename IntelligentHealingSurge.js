@@ -73,6 +73,27 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 	});
 
 	/**
+	 * Provides an easy to modify list of flavor text for when a healing surge is used.
+	 */
+	const emoteOptions = [
+		" takes a deep breath in, relaxing and loosening their muscles for an extended fight.",
+		" cracks their knuckles, reading themselves for an extended fight.",
+		" quickly patches up their injuries, shrugging off the pain.",
+		" takes a moment to re-center themselves, focused on the battle at hand.",
+		" shrugs off their injuries, mentally fueling their inner fire.",
+		" eyes burn passionately. They are not planning on going down quietly.",
+		" looks invigorated as a rush of energy flows through them.",
+		" takes a second to get their bearings before pressing forward."
+	];
+
+	/**
+	 * Returns a randomly generated emote from the emote option list
+	 */
+	const generateEmote = function() {
+		return emoteOptions[randomInteger(emoteOptions.length) - 1];
+	}
+
+	/**
 	 * Send feedback
 	 * 
 	 * @param {string} msg	The message to send
@@ -432,7 +453,7 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 		 * Makes the healing surge unusable by the character until after they finish a short or long rest.
 		 */
 		exhaustHealingSurge() {
-			sendEmote(this.characterid, "looks invigorated as a rush of energy flows through them.");
+			sendEmote(this.characterid, generateEmote());
 			this.setAttribute(friendlyAttributeNames.healingSurge, healingSurgeEnum.NOTREADY);
 		}
 

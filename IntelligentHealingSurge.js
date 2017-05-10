@@ -14,9 +14,9 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 	 * Script information
 	 */
 	const info = Object.freeze({
-		version: "0.1.0",
+		version: "0.5.0",
 		created: "5/6/2017",
-		lastupdate: "5/9/2017",
+		lastupdate: "5/10/2017",
 		author: "Sam T."
 	});
 
@@ -24,8 +24,17 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 	 * Useful constants for defining certain parts of the code
 	 */
 	const fields = Object.freeze({
+		/**
+		 * The invoker token to tell the api to pass the stuff to us
+		 */
 		apiInvoke: "ihs",
+		/**
+		 * Our name, also what is sent to the user
+		 */
 		feedbackName: "Intelligent Healing Surge",
+		/**
+		 * Commands used to invoke parts of the api.
+		 */
 		commands: {
 			surge: "surge",
 			shortRest: "short",
@@ -35,6 +44,9 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 		}
 	});
 
+	/**
+	 * A list of attributes in a friendlier way of accessing them.
+	 */
 	const friendlyAttributeNames = Object.freeze({
 		conMod: "constitution",
 		hitDice: "hit_dice",
@@ -44,11 +56,17 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 		level: "level"
 	});
 
+	/**
+	 * A enumeration of the healing surge options
+	 */
 	const healingSurgeEnum = Object.freeze({
 		READY: 1,
 		NOTREADY: 0
 	});
 
+	/**
+	 * An enumberation of the attribute type options
+	 */
 	const attributeTypeEnum = Object.freeze({
 		CURRENT: "current",
 		MAX: "max"
@@ -93,108 +111,86 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 	};
 
 	/**
-	 * Contains methods for telling special exceptions
+	 * The base exception used for my exception classes which extends it
 	 */
-	const exceptions = (function() {
-		/**
-		 * Exception is used if the character is at full health
-		 * @param {any} message the message to send
-		 */
-		const fullHealthException = function(message) {
+	class BaseException {
+		constructor(message) {
 			this.message = message;
+			this.name = "BaseException";
+		}
+	}
+
+	/**
+	 * Exception is used if the character is at full health
+	 * @param {any} message the message to send
+	 */
+	class FullHealthException extends BaseException {
+		constructor(message) {
+			super(message);
 			this.name = "FullHealthException";
-		};
+		}
+	}
 
-		/**
-		 * Exception is used when the api invoker has failed to select a valid token
-		 * @param {any} message the message to send
-		 */
-		const selectionException = function(message) {
-			this.message = message;
-			this.name = "SelectionException";
-		};
-
-		/**
-		 * Exception is used if a healing surge is tried to be used when it isn't ready
-		 *
-		 * @param {any} message the message to send
-		 */
-		const healingSurgeUnusableException = function(message) {
-			this.message = message;
+	/**
+	 * Exception is used if a healing surge is tried to be used when it isn't ready
+	 *
+	 * @param {any} message the message to send
+	 */
+	class HealingSurgeUnusableException extends BaseException {
+		constructor(message) {
+			super(message);
 			this.name = "HealingSurgeUnusableException";
-		};
+		}
+	}
 
-		/**
-		 * Exception is used if one tries to spend hit die when they have none
-		 *
-		 * @param {any} message the message to send
-		 */
-		const missingHitDiceException = function(message) {
-			this.message = message;
+	/**
+	 * Exception is used if one tries to spend hit die when they have none
+	 *
+	 * @param {any} message the message to send
+	 */
+	class MissingHitDiceException extends BaseException {
+		constructor(message) {
+			super(message);
 			this.name = "MissingHitDiceException";
-		};
+		}
+	}
 
-		/**
-		 * Exception is used when an attribute doesn't exist for a character.
-		 * 
-		 * @param {any} message the message to send
-		 * @param {any} attribute the attribute that was missing
-		 */
-		const attributeDoesNotExistException = function(message, attribute) {
-			this.message = message;
+	/**
+	 * Exception is used when an attribute doesn't exist for a character.
+	 * 
+	 * @param {any} message the message to send
+	 * @param {any} attribute the attribute that was missing
+	 */
+	class AttributeDoesNotExistException extends BaseException {
+		constructor(message, attribute) {
+			super(message);
 			this.attribute = attribute;
 			this.name = "AttributeDoesNotExistException";
-		};
+		}
+	}
 
-		/**
-		 * Exception is used when command restricted to GM level is invoked by a non-GM.
-		 * 
-		 * @param {any} message the message to send
-		 */
-		const restrictedAccessException = function(message) {
-			this.message = message;
+	/**
+	 * Exception is used when command restricted to GM level is invoked by a non-GM.
+	 * 
+	 * @param {any} message the message to send
+	 */
+	class RestrictedAccessException extends BaseException {
+		constructor(message) {
+			super(message);
 			this.name = "RestrictedAccessException";
-		};
-		return {
-			/**
-			 * Exception is used if the character is at full health
-			 * @param {any} message the message to send
-			 */
-			FullHealthException: fullHealthException,
+		}
+	}
 
-			/**
-			 * Exception is used when an attribute doesn't exist for a character.
-			 * @param {any} message the message to send
-			 * @param {any} attribute the attribute that was missing
-			 */
-			AttributeDoesNotExistException: attributeDoesNotExistException,
-
-			/**
-			 * Exception is used when the api invoker has failed to select a valid token
-			 * @param {any} message the message to send
-			 */
-			SelectionException: selectionException,
-
-			/**
-			 * Exception is used if one tries to spend hit die when they have none
-			 * @param {any} message the message to send
-			 */
-			MissingHitDiceException: missingHitDiceException,
-
-			/**
-			 * Exception is used if a healing surge is tried to be used when it isn't ready
-			 * @param {any} message the message to send
-			 */
-			HealingSurgeUnusableException: healingSurgeUnusableException,
-
-			/**
-			 * Exception is used when command restricted to GM level is invoked by a non-GM.
-			 * 
-			 * @param {any} message the message to send
-			 */
-			RestrictedAccessException: restrictedAccessException
-		};
-	}());
+	/**
+	 * Exception is used if no token is selected.
+	 * @param {any} message the message to send
+	 */
+	class SelectionException extends BaseException {
+		constructor(message) {
+			super(message);
+			this.name = "SelectionException";
+		}
+	}
 
 	/**
 	 *  Contains templates which control how the look of the over all response looks
@@ -242,7 +238,7 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 				// ReSharper disable once PossiblyUnassignedProperty
 				!(graphic = getObj("graphic", selection[0]._id) || graphic.get("_subtype") !== "token") ||
 				graphic.get("isdrawing")) {
-				throw new exceptions.SelectionException("A token must be selected before using this script.");
+				throw new SelectionException("A token must be selected before using this script.");
 			}
 
 			return getObj("graphic", selection[0]._id);
@@ -297,7 +293,6 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 	/**
 	 * Contains methods regarding working with the character
 	 */
-	// ReSharper disable once InconsistentNaming
 	class Character {
 		/**
 		 * Construct a new instance of the Character class
@@ -318,22 +313,31 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 
 			this.hitDie = parseInt(this.getAttr(friendlyAttributeNames.hitDie));
 
-			try {
-				this.healingSurge = parseInt(this.getAttr(friendlyAttributeNames.healingSurge));
-			} catch (e) {
-				if (e instanceof exceptions.AttributeDoesNotExistException) {
-					// since the healingSurge attribute didn't exist, create it
-					log("healing surge attribute not found, creating it now");
-					this.setAttribute(friendlyAttributeNames.healingSurge, healingSurgeEnum.READY);
-					this.healingSurge = healingSurgeEnum.READY;
-				} else {
-					sendError(JSON.stringify(e));
-				}
-			}
+			this.healingSurge = this.getHealingSurgeValue();
 
 			this.conMod = this.calculateModifier(parseInt(this.getAttr(friendlyAttributeNames.conMod)));
 
 			this.level = parseInt(this.getAttr(friendlyAttributeNames.level));
+		}
+
+		/**
+		 * Gets the healing surge value from the character sheet, creating the attribute if necessary.
+		 */
+		getHealingSurgeValue() {
+			let retVal = 0;
+			try {
+				retVal = parseInt(this.getAttr(friendlyAttributeNames.healingSurge));
+			} catch (e) {
+				if (e instanceof AttributeDoesNotExistException) {
+					// since the healingSurge attribute didn't exist, create it
+					log("healing surge attribute not found, creating it now");
+					this.setAttribute(friendlyAttributeNames.healingSurge, healingSurgeEnum.READY);
+					retVal = healingSurgeEnum.READY;
+				} else {
+					sendError(JSON.stringify(e));
+				}
+			}
+			return retVal;
 		}
 
 		/**
@@ -361,7 +365,7 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 			if (retval != null && retval !== "") {
 				return retval;
 			} else {
-				throw new exceptions.AttributeDoesNotExistException(`Missing attribute`, name);
+				throw new AttributeDoesNotExistException(`Missing attribute`, name);
 			}
 		}
 
@@ -476,17 +480,18 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 		spendHitDieToHeal() {
 			// Healing surge gate
 			if (!this.isHealingSurgeReady()) {
-				throw new exceptions.HealingSurgeUnusableException("You must rest before you can use this feature again.");
+				throw new HealingSurgeUnusableException("You must rest before you can use this feature again.");
 			}
 
 			// Health gate
 			if (!this.isHurt()) {
-				throw new exceptions.FullHealthException("You are at full health already.");
+				//throw new exceptions.FullHealthException("You are at full health already.");
+				throw new FullHealthException("You are at full health already.");
 			}
 
 			// enough hit dice gate
 			if (!this.isHitDiceReady()) {
-				throw new exceptions.MissingHitDiceException("You are out of hit dice to spend.");
+				throw new MissingHitDiceException("You are out of hit dice to spend.");
 			}
 
 			// reduce the hit dice by one
@@ -548,11 +553,11 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 					this.exhaustHealingSurge(sender);
 				}
 			} catch (e) {
-				if (e instanceof exceptions.HealingSurgeUnusableException ||
-					e instanceof exceptions.MissingHitDiceException ||
-					e instanceof exceptions.FullHealthException) {
+				if (e instanceof HealingSurgeUnusableException ||
+					e instanceof MissingHitDiceException ||
+					e instanceof FullHealthException) {
 					sendError(e.message, sender);
-				} else if (e instanceof exceptions.AttributeDoesNotExistException) {
+				} else if (e instanceof AttributeDoesNotExistException) {
 					sendError(`Missing attribute: ${e.attribute}`, sender);
 				} else {
 					log("Intelligent Healing Surge threw an unexpected exception");
@@ -645,7 +650,7 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 		 */
 		const run = function(playerid) {
 			if (!playerIsGM(playerid)) {
-				throw new exceptions.RestrictedAccessException("you must be a GM to use this command.");
+				throw new RestrictedAccessException("you must be a GM to use this command.");
 			}
 
 			create("IHS_Healing-Surge", fields.commands.surge, playerid);
@@ -697,8 +702,8 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 					}
 				}
 			} catch (e) {
-				if (e instanceof exceptions.SelectionException ||
-					e instanceof exceptions.RestrictedAccessException) {
+				if (e instanceof SelectionException ||
+					e instanceof RestrictedAccessException) {
 					const message = `${e.name}: ${e.message}`;
 					sendError(message, sender);
 				} else {

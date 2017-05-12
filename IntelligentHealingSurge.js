@@ -569,15 +569,6 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 				const heal = this.spendHitDieToHeal();
 				this.displayHealAmt(heal, sender);
 				this.updateHp(heal);
-
-				//// if hit die remain, ask user if they wish to spend more hit die
-				//// if yes, doheal again,
-				//// if no, exhaust healing surge
-				if (this.isHurt() && this.isHitDiceReady()) {
-					this.queryContinue();
-				} else {
-					this.exhaustHealingSurge(sender);
-				}
 			} catch (e) {
 				if (e instanceof HealingSurgeUnusableException ||
 					e instanceof MissingHitDiceException ||
@@ -718,6 +709,15 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 
 						if (args.indexOf(`-${fields.commands.surge}`) === 0) {
 							character.doHeal(sender);
+
+							//// if hit die remain, ask user if they wish to spend more hit die
+							//// if yes, doheal again,
+							//// if no, exhaust healing surge
+							if (character.isHurt() && character.isHitDiceReady()) {
+								character.queryContinue();
+							} else {
+								character.exhaustHealingSurge(sender);
+							}
 						} else if (args.indexOf(`-${fields.commands.shortRest}`) === 0) {
 							character.doShortRest(sender);
 						} else if (args.indexOf(`-${fields.commands.longRest}`) === 0) {

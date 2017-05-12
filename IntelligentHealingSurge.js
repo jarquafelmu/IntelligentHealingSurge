@@ -14,9 +14,9 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 	 * Script information
 	 */
 	const info = Object.freeze({
-		version: "0.5.0",
+		version: "0.6.0",
 		created: "5/6/2017",
-		lastupdate: "5/10/2017",
+		lastupdate: "5/12/2017",
 		author: "Sam T."
 	});
 

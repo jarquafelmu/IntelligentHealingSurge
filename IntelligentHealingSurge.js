@@ -111,8 +111,13 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 		sendChat(fields.feedbackName, content);
 	};
 
-	const sendEmote = function(characterid, msg) {
-		sendChat(`character|${characterid}`, `/em ${msg}`);
+	/**
+	 * Sends an emote to the chat area speaking as the character
+	 * @param {any} characterid the character id of the character to speak as
+	 * @param {any} emote the emote to send
+	 */
+	const sendEmote = function(characterid, emote) {
+		sendChat(`character|${characterid}`, `/em ${emote}`);
 	};
 
 	/**

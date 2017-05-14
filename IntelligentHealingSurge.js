@@ -3,6 +3,8 @@
  * 
  * Based on the Dnd Fifth Edition healing surge variant, this script allows a user to quickly perform a healing surge
  * while ensuring that a healing surge can actually be performed.
+ *
+ * healing surge healed all of gerald's hp instead of just 6
 */
 
 var IntelligentHealingSurge = IntelligentHealingSurge ||
@@ -450,14 +452,6 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 		}
 
 		/**
-		 * Makes the healing surge unusable by the character until after they finish a short or long rest.
-		 */
-		exhaustHealingSurge() {
-			sendEmote(this.characterid, generateEmote());
-			this.setAttribute(friendlyAttributeNames.healingSurge, healingSurgeEnum.NOTREADY);
-		}
-
-		/**
 		 * Checks if the healing surge is available
 		 * @param {any} id the character id
 		 */
@@ -489,6 +483,15 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 		 */
 		updateHitDice() {
 			this.setAttribute(friendlyAttributeNames.hitDice, this.hitDice);
+		}
+
+		/**
+		 * Updates the character's hp
+		 * @param {any} healAmount
+		 */
+		updateHp(healAmount) {
+			this.hp = Math.min(healAmount + this.hp, this.maxHp);
+			this.setAttribute(friendlyAttributeNames.hp, this.hp);
 		}
 
 		/**
@@ -537,15 +540,6 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 		}
 
 		/**
-		 * Updates the character's hp
-		 * @param {any} healAmount
-		 */
-		updateHp(healAmount) {
-			this.hp = Math.min(healAmount + this.hp, this.maxHp);
-			this.setAttribute(friendlyAttributeNames.hp, this.hp);
-		}
-
-		/**
 		 * Confirm if the user wishes to spend another hit die
 		 * @param {any} sender
 		 */
@@ -553,6 +547,14 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 			const buttons = `${templates.buildButton("Yes", "surge")} ${templates.buildButton("No", "exhaust")}`;
 			const content = templates.buildRollTemplate("Use another?", buttons);
 			sendFeedback(content, sender);
+		}
+
+		/**
+		 * Makes the healing surge unusable by the character until after they finish a short or long rest.
+		 */
+		doExhaustHealingSurge() {
+			sendEmote(this.characterid, generateEmote());
+			this.setAttribute(friendlyAttributeNames.healingSurge, healingSurgeEnum.NOTREADY);
 		}
 
 		/**
@@ -564,6 +566,15 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 				const heal = this.spendHitDieToHeal();
 				this.displayHealAmt(heal, sender);
 				this.updateHp(heal);
+
+				//// if hit die remain, ask user if they wish to spend more hit die
+				//// if yes, doheal again,
+				//// if no, exhaust healing surge
+				if (this.isHurt() && this.isHitDiceReady()) {
+					this.queryContinue();
+				} else {
+					this.doExhaustHealingSurge();
+				}
 			} catch (e) {
 				if (e instanceof HealingSurgeUnusableException ||
 					e instanceof MissingHitDiceException ||
@@ -704,21 +715,12 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 
 						if (args.indexOf(`-${fields.commands.surge}`) === 0) {
 							character.doHeal(sender);
-
-							//// if hit die remain, ask user if they wish to spend more hit die
-							//// if yes, doheal again,
-							//// if no, exhaust healing surge
-							if (character.isHurt() && character.isHitDiceReady()) {
-								character.queryContinue();
-							} else {
-								character.exhaustHealingSurge(sender);
-							}
 						} else if (args.indexOf(`-${fields.commands.shortRest}`) === 0) {
 							character.doShortRest(sender);
 						} else if (args.indexOf(`-${fields.commands.longRest}`) === 0) {
 							character.doLongRest(sender);
 						} else if (args.indexOf(`-${fields.commands.exhaust}`) === 0) {
-							character.exhaustHealingSurge();
+							character.doExhaustHealingSurge();
 						}
 					}
 				}

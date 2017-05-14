@@ -307,8 +307,7 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 		 * Public functions
 		*/
 		return {
-			getCharacterJournal: getCharacterJournal,
-			useNpcAttributeName: useNpcAttributeName
+			getCharacterJournal: getCharacterJournal
 		};
 	}());
 

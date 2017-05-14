@@ -304,19 +304,6 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 		};
 
 		/**
-		 * Checks to see if the Attribute exists for the NPC.
-		 * 
-		 * @param {any} id id of the journal to check
-		 * @param {any} attribute npc attribute to check
-		 *
-		 * @return true if attribute exists, otherwise false.
-		 */
-		const useNpcAttributeName = function(id, attribute) {
-			const result = parseInt(getAttrByName(id, `${attribute}_flag`));
-			return result > 0;
-		};
-
-		/**
 		 * Public functions
 		*/
 		return {

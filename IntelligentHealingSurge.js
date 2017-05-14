@@ -72,6 +72,12 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 		MAX: "max"
 	});
 
+	const macroNames = Object.freeze({
+		surge: "Healing-Surge",
+		short: "Short-Rest",
+		long: "Long-Rest"
+	});
+
 	/**
 	 * Provides an easy to modify list of flavor text for when a healing surge is used.
 	 */
@@ -670,9 +676,9 @@ var IntelligentHealingSurge = IntelligentHealingSurge ||
 				throw new RestrictedAccessException("you must be a GM to use this command.");
 			}
 
-			create("IHS_Healing-Surge", fields.commands.surge, playerid);
-			create("IHS_Short-Rest", fields.commands.shortRest, playerid);
-			create("IHS_Long-Rest", fields.commands.longRest, playerid);
+			create(macroNames.surge, fields.commands.surge, playerid);
+			create(macroNames.short, fields.commands.shortRest, playerid);
+			create(macroNames.long, fields.commands.longRest, playerid);
 		};
 		return {
 			run: run
